@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frontend Legend ✨</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #000428, #004e92);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: white;
+      position: relative;
+    }
+
+    /* Particle Background */
+    #particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      animation: float 10s linear infinite;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.2;
+      }
+      50% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-120vh) translateX(50vw);
+        opacity: 0;
+      }
+    }
+
+    .container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 60px 80px;
+      border-radius: 25px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      animation: fadeIn 1.5s ease-in-out;
+      z-index: 1;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      background-size: 200% 200%;
+      
+      -webkit-text-fill-color: transparent;
+      animation: gradientMove 3s ease infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    p {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-bottom: 35px;
+      height: 28px;
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 3px solid white;
+      animation: typing 4s steps(40, end) infinite;
+    }
+
+    @keyframes typing {
+      0%, 100% { width: 0; }
+      50% { width: 100%; }
+    }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(90deg, #ff512f, #dd2476);
+      color: white;
+      border: none;
+      padding: 15px 50px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+    }
+
+    .btn span {
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: -100%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.5s;
+      transform: skewX(-20deg);
+    }
+
+    .btn:hover::after {
+      left: 200%;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+      background: linear-gradient(90deg, #dd2476, #ff512f);
+      box-shadow: 0 0 25px rgba(255, 105, 180, 0.7);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Dynamic Particles -->
+  <div id="particles"></div>
+
+  <div class="container">
+    <h1>🚀 Hello from clxend project!</h1>
+    <p>Deployed with Docker 🐳 & Powered by Minikube ☁️</p>
+    <button class="btn" onclick="alert('successful 👍!')"><span>Click Me!</span></button>
+  </div>
+
+  <script>
+    // Generate floating particles dynamically
+    const particlesContainer = document.getElementById('particles');
+    for(let i = 0; i < 50; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = Math.random() * 100 + 'vw';
+      const size = Math.random() * 8 + 2;
+      particle.style.width = particle.style.height = size + 'px';
+      particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
+      particlesContainer.appendChild(particle);
+    }
+  </script>
+</body>
+</html>
