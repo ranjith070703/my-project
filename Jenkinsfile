@@ -3,68 +3,59 @@ pipeline {
 
     environment {
         MINIKUBE_HOME = "${WORKSPACE}/.minikube"
-        // Use Docker inside Minikube
     }
 
     stages {
-        stage('Clone GitHub Repo') {
-            steps {
-                echo "📥 Cloning GitHub repository..."
-                git branch: 'main', url: 'https://github.com/ranjith070703/my-project.git'
-            }
-        }
-
         stage('Start Minikube') {
             steps {
                 echo "🚀 Starting Minikube..."
-                sh '''
-                minikube start --driver=docker
-                eval $(minikube docker-env)
-                '''
+                bat 'minikube delete --purge'
+                bat 'minikube start --driver=docker --force'
             }
         }
 
-        stage('Build Backend Image') {
+        stage('Point Docker to Minikube') {
             steps {
-                echo "🔨 Building backend image..."
-                sh 'docker build -t backend:latest ./backend'
+                echo "🔗 Pointing Docker to Minikube..."
+                bat 'minikube -p minikube docker-env --shell powershell | Invoke-Expression'
             }
         }
 
-        stage('Build Frontend Image') {
+        stage('Build Docker Images') {
             steps {
-                echo "🔨 Building frontend image..."
-                sh 'docker build -t frontend:latest ./frontend'
+                echo "🛠️ Building backend and frontend images..."
+                bat 'docker build -t backend:latest ./backend'
+                bat 'docker build -t frontend:latest ./frontend'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo "📦 Applying Kubernetes manifests..."
-                sh 'kubectl apply -f k8s/'
+                bat 'kubectl apply -f fullstack-deployment.yaml'
             }
         }
 
-        stage('Restart Deployments') {
+        stage('Wait for Pods') {
             steps {
-                echo "♻️ Restarting backend/frontend deployments..."
-                sh 'kubectl rollout restart deployment backend-deployment'
-                sh 'kubectl rollout restart deployment frontend-deployment'
+                echo "⏳ Waiting for pods to be ready..."
+                bat 'kubectl rollout status deployment/backend-deployment'
+                bat 'kubectl rollout status deployment/frontend-deployment'
+                bat 'kubectl get pods'
             }
         }
 
-        stage('Verify') {
+        stage('Show Frontend URL') {
             steps {
-                echo "✅ Checking pods and services..."
-                sh 'kubectl get pods'
-                sh 'kubectl get svc'
+                echo "🌐 Frontend URL:"
+                bat 'minikube service frontend-service --url'
             }
         }
     }
 
     post {
         always {
-            echo "🚀 CI/CD Pipeline finished!"
+            echo "✅ CI/CD pipeline finished!"
         }
     }
 }
