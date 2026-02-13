@@ -39,4 +39,4 @@ jobs:
 
     - name: Apply Kubernetes manifests
       run: |
-        kubectl apply -f k8s/
+        kubectl apply -f fullstack-deployment.yaml
