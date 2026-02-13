@@ -16,21 +16,36 @@ spec:
       containers:
       - name: backend
         image: backend:latest
-        imagePullPolicy: Never   # Use local image, do not pull
+        imagePullPolicy: Never
         ports:
         - containerPort: 5000
+
+        # ✅ Resource Control (Prevents CrashLoop / OOM)
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+
+        # ✅ Liveness Probe (Self-healing)
         livenessProbe:
           httpGet:
             path: /health
             port: 5000
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
+          failureThreshold: 3
+
+        # ✅ Readiness Probe (Traffic control)
         readinessProbe:
           httpGet:
             path: /health
             port: 5000
           initialDelaySeconds: 5
-          periodSeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
 
 ---
 # Backend Service
@@ -66,9 +81,33 @@ spec:
       containers:
       - name: frontend
         image: frontend:latest
-        imagePullPolicy: Never   # Use local image, do not pull
+        imagePullPolicy: Never
         ports:
         - containerPort: 80
+
+        # ✅ Resource Control
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "150m"
+            memory: "128Mi"
+
+        # ✅ Basic Health Check (optional but recommended)
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
 
 ---
 # Frontend Service
