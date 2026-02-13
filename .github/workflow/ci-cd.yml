@@ -1,0 +1,59 @@
+name: CI/CD Pipeline - Local Cluster
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout the repo
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # 2. Set up Docker
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # 3. Set up Minikube
+    - name: Install Minikube
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl conntrack
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+    - name: Start Minikube
+      run: |
+        minikube start --driver=docker
+        minikube status
+
+    # 4. Build Docker images using Minikube's Docker daemon
+    - name: Set Docker environment for Minikube
+      run: eval $(minikube docker-env)
+
+    - name: Build Backend Image
+      run: docker build -t my-backend:latest ./backend
+
+    - name: Build Frontend Image
+      run: docker build -t my-frontend:latest ./frontend
+
+    # 5. Apply Kubernetes manifests
+    - name: Deploy to Minikube
+      run: |
+        kubectl apply -f fullstack-deployment.yaml
+        
+        kubectl rollout status deployment backend-deployment
+        kubectl rollout status deployment frontend-deployment
+
+    # 6. Show pod and service status
+    - name: Verify Deployment
+      run: |
+        kubectl get pods
+        kubectl get svc 
+      name: Get Frontend url
+      run:
+        minikube service frontend-service --url
