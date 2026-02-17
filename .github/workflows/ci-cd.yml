@@ -14,49 +14,49 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Step 2: Start Minikube safely (fixed PowerShell syntax)
+    # Step 2: Start Minikube safely
     - name: Start Minikube
       shell: powershell
       run: |
-        Write-Host "🔍 Checking if Minikube is running..."
+        Write-Host "Checking if Minikube is running..."
         $status = minikube status | Select-String "Running" -ErrorAction SilentlyContinue
         if ($status) {
-          Write-Host "✅ Minikube already running."
+          Write-Host "Minikube already running."
         } else {
-          Write-Host "🚀 Starting Minikube as Administrator..."
+          Write-Host "Starting Minikube as Administrator..."
           $command = 'minikube start --driver=docker'
           Start-Process -FilePath "powershell.exe" -Verb RunAs -ArgumentList $command -WindowStyle Hidden
           Start-Sleep -Seconds 60
         }
-        Write-Host "✅ Checking Minikube status..."
+        Write-Host "Checking Minikube status..."
         minikube status
 
     # Step 3: Configure Docker to use Minikube’s Docker daemon
     - name: Point Docker to Minikube
       shell: powershell
       run: |
-        Write-Host "🐳 Configuring Docker environment for Minikube..."
+        Write-Host "Setting Docker environment to Minikube..."
         minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
     # Step 4: Build Backend Image
     - name: Build backend image
       shell: powershell
       run: |
-        Write-Host "🔨 Building backend Docker image..."
+        Write-Host "Building backend Docker image..."
         docker build -t backend:latest ./backend
 
     # Step 5: Build Frontend Image
     - name: Build frontend image
       shell: powershell
       run: |
-        Write-Host "🎨 Building frontend Docker image..."
+        Write-Host "Building frontend Docker image..."
         docker build -t frontend:latest ./frontend
 
     # Step 6: Deploy to Kubernetes
     - name: Deploy to Kubernetes
       shell: powershell
       run: |
-        Write-Host "📦 Deploying to Kubernetes..."
+        Write-Host "Deploying to Kubernetes..."
         $env:KUBECONFIG = "$(minikube kubeconfig)"
         kubectl apply -f fullstack-deployment.yaml --validate=false
         kubectl rollout status deployment/backend-deployment
@@ -66,8 +66,8 @@ jobs:
     - name: Verify Deployment
       shell: powershell
       run: |
-        Write-Host "🔍 Verifying running pods and services..."
+        Write-Host "Verifying running pods and services..."
         kubectl get pods
         kubectl get svc
-        Write-Host "`n🌐 Frontend Service URL:`"
+        Write-Host "`nFrontend Service URL:"
         minikube service frontend-service --url
