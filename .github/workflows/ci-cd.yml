@@ -71,4 +71,4 @@ jobs:
         kubectl get svc
         Write-Host "Listing Minikube services..."
         minikube service list
-        Write-Host "Deployment completed successfully."
+        Write-Host "Deployment completed successfully"
