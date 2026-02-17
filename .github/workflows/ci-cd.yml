@@ -1,42 +1,58 @@
-
-name: CI-CD Pipeline
+name: Local Minikube CI/CD
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-deploy:
+    runs-on: self-hosted   # Runs on your local laptop runner
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    # Step 1: Checkout the latest code
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    # Step 2: Start Minikube
+    - name: Start Minikube
+      shell: powershell
+      run: minikube start --driver=docker
 
+    # Step 3: Configure Docker to use Minikube’s Docker daemon
+    - name: Point Docker to Minikube
+      shell: powershell
+      run: minikube -p minikube docker-env --shell powershell | Invoke-Expression
+
+    # Step 4: Build Backend Image
     - name: Build backend image
-      run: |
-        docker build -t backend:latest ./backend
+      shell: powershell
+      run: docker build -t backend:latest ./backend
 
+    # Step 5: Build Frontend Image
     - name: Build frontend image
+      shell: powershell
+      run: docker build -t frontend:latest ./frontend
+
+    # Step 6: Deploy to Kubernetes (with fixed validation)
+    - name: Deploy to Kubernetes
+      shell: powershell
       run: |
-        docker build -t frontend:latest ./frontend
+        # Ensure Minikube's kubeconfig is used
+        $env:KUBECONFIG = "$(minikube kubeconfig)"
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+        # Apply manifests (skip strict validation to avoid openapi issue)
+        kubectl apply -f fullstack-deployment.yaml --validate=false
 
-    steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+        # Wait for rollouts to complete
+        kubectl rollout status deployment/backend-deployment
+        kubectl rollout status deployment/frontend-deployment
 
-    - name: Setup kubectl
-      uses: azure/setup-kubectl@v4
-
-    - name: Apply Kubernetes manifests
+    # Step 7: Verify and print service URLs
+    - name: Verify Deployment
+      shell: powershell
       run: |
-        kubectl apply -f fullstack-deployment.yaml
+        kubectl get pods
+        kubectl get svc
+        Write-Host "`nFrontend URL:`"
+        minikube service frontend-service --url
