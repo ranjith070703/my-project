@@ -3,8 +3,11 @@ import logging
 
 app = Flask(__name__)
 
-logging.basicConfig(filename='app.log', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+# ✅ Log to console (IMPORTANT for Kubernetes)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 @app.route('/')
 def home():
