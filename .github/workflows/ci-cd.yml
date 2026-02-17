@@ -62,12 +62,22 @@ jobs:
         kubectl rollout status deployment/backend-deployment
         kubectl rollout status deployment/frontend-deployment
 
-    # Step 7: Verify Deployment
+    # Step 7: Verify Deployment and print service URLs
     - name: Verify Deployment
       shell: powershell
       run: |
         Write-Host "Verifying running pods and services..."
         kubectl get pods
         kubectl get svc
+
         Write-Host "`nFrontend Service URL:"
-        minikube service frontend-service --url
+        $frontendUrl = minikube service frontend-service --url
+        Write-Host $frontendUrl
+
+        Write-Host "`nBackend Service URL:"
+        $backendUrl = minikube service backend-service --url
+        Write-Host $backendUrl
+
+        Write-Host "`nWaiting for services to stabilize..."
+        Start-Sleep -Seconds 20
+        Write-Host " Deployment completed successfully. Pipeline finished."
