@@ -14,7 +14,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Step 2: Start Minikube (with safety check and proper PowerShell syntax)
+    # Step 2: Start Minikube safely (fixed PowerShell syntax)
     - name: Start Minikube
       shell: powershell
       run: |
@@ -24,16 +24,18 @@ jobs:
           Write-Host "✅ Minikube already running."
         } else {
           Write-Host "🚀 Starting Minikube as Administrator..."
-          Start-Process "powershell.exe" -Verb RunAs -ArgumentList 'minikube start --driver=docker' -WindowStyle Hidden
+          $command = 'minikube start --driver=docker'
+          Start-Process -FilePath "powershell.exe" -Verb RunAs -ArgumentList $command -WindowStyle Hidden
           Start-Sleep -Seconds 60
         }
+        Write-Host "✅ Checking Minikube status..."
         minikube status
 
     # Step 3: Configure Docker to use Minikube’s Docker daemon
     - name: Point Docker to Minikube
       shell: powershell
       run: |
-        Write-Host "🐳 Pointing Docker to Minikube environment..."
+        Write-Host "🐳 Configuring Docker environment for Minikube..."
         minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
     # Step 4: Build Backend Image
@@ -50,7 +52,7 @@ jobs:
         Write-Host "🎨 Building frontend Docker image..."
         docker build -t frontend:latest ./frontend
 
-    # Step 6: Deploy to Kubernetes (skip strict validation)
+    # Step 6: Deploy to Kubernetes
     - name: Deploy to Kubernetes
       shell: powershell
       run: |
@@ -60,12 +62,12 @@ jobs:
         kubectl rollout status deployment/backend-deployment
         kubectl rollout status deployment/frontend-deployment
 
-    # Step 7: Verify and print service URLs
+    # Step 7: Verify Deployment
     - name: Verify Deployment
       shell: powershell
       run: |
-        Write-Host "🔍 Checking running pods and services..."
+        Write-Host "🔍 Verifying running pods and services..."
         kubectl get pods
         kubectl get svc
-        Write-Host "`n🌐 Frontend URL:`"
+        Write-Host "`n🌐 Frontend Service URL:`"
         minikube service frontend-service --url
