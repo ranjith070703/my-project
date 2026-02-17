@@ -14,7 +14,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Step 2: Start Minikube (with safety check)
+    # Step 2: Start Minikube (with safety check and proper PowerShell syntax)
     - name: Start Minikube
       shell: powershell
       run: |
@@ -23,8 +23,8 @@ jobs:
         if ($status) {
           Write-Host "✅ Minikube already running."
         } else {
-          Write-Host "🚀 Starting Minikube..."
-          Start-Process powershell -Verb runAs -ArgumentList "minikube start --driver=docker"
+          Write-Host "🚀 Starting Minikube as Administrator..."
+          Start-Process "powershell.exe" -Verb RunAs -ArgumentList 'minikube start --driver=docker' -WindowStyle Hidden
           Start-Sleep -Seconds 60
         }
         minikube status
@@ -32,7 +32,9 @@ jobs:
     # Step 3: Configure Docker to use Minikube’s Docker daemon
     - name: Point Docker to Minikube
       shell: powershell
-      run: minikube -p minikube docker-env --shell powershell | Invoke-Expression
+      run: |
+        Write-Host "🐳 Pointing Docker to Minikube environment..."
+        minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
     # Step 4: Build Backend Image
     - name: Build backend image
