@@ -14,10 +14,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Step 2: Start Minikube
+    # Step 2: Start Minikube (with safety check)
     - name: Start Minikube
       shell: powershell
-      run: minikube start --driver=docker
+      run: |
+        Write-Host "🔍 Checking if Minikube is running..."
+        $status = minikube status | Select-String "Running" -ErrorAction SilentlyContinue
+        if ($status) {
+          Write-Host "✅ Minikube already running."
+        } else {
+          Write-Host "🚀 Starting Minikube..."
+          Start-Process powershell -Verb runAs -ArgumentList "minikube start --driver=docker"
+          Start-Sleep -Seconds 60
+        }
+        minikube status
 
     # Step 3: Configure Docker to use Minikube’s Docker daemon
     - name: Point Docker to Minikube
@@ -27,24 +37,24 @@ jobs:
     # Step 4: Build Backend Image
     - name: Build backend image
       shell: powershell
-      run: docker build -t backend:latest ./backend
+      run: |
+        Write-Host "🔨 Building backend Docker image..."
+        docker build -t backend:latest ./backend
 
     # Step 5: Build Frontend Image
     - name: Build frontend image
       shell: powershell
-      run: docker build -t frontend:latest ./frontend
+      run: |
+        Write-Host "🎨 Building frontend Docker image..."
+        docker build -t frontend:latest ./frontend
 
-    # Step 6: Deploy to Kubernetes (with fixed validation)
+    # Step 6: Deploy to Kubernetes (skip strict validation)
     - name: Deploy to Kubernetes
       shell: powershell
       run: |
-        # Ensure Minikube's kubeconfig is used
+        Write-Host "📦 Deploying to Kubernetes..."
         $env:KUBECONFIG = "$(minikube kubeconfig)"
-
-        # Apply manifests (skip strict validation to avoid openapi issue)
         kubectl apply -f fullstack-deployment.yaml --validate=false
-
-        # Wait for rollouts to complete
         kubectl rollout status deployment/backend-deployment
         kubectl rollout status deployment/frontend-deployment
 
@@ -52,7 +62,8 @@ jobs:
     - name: Verify Deployment
       shell: powershell
       run: |
+        Write-Host "🔍 Checking running pods and services..."
         kubectl get pods
         kubectl get svc
-        Write-Host "`nFrontend URL:`"
+        Write-Host "`n🌐 Frontend URL:`"
         minikube service frontend-service --url
