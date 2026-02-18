@@ -1,11 +1,22 @@
 pipeline {
     agent any
 
+    environment {
+        KUBECONFIG = "C:\\Users\\DELL\\.kube\\config"
+    }
+
     stages {
 
         stage('Clone') {
             steps {
                 echo 'Cloning repository...'
+            }
+        }
+
+        stage('Check Kubernetes Connection') {
+            steps {
+                bat 'kubectl config get-contexts'
+                bat 'kubectl get nodes'
             }
         }
 
@@ -23,7 +34,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                bat 'kubectl apply -f fullstack-deployment.yaml'
+                bat 'kubectl apply -f fullstack-deployment.yaml --validate=false'
             }
         }
 
